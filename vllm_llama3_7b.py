@@ -84,6 +84,7 @@ class VLLMPredictDeployment:
         stream = request_dict.pop("stream", False)
         # model can´t be processed by ray
         request_dict.pop("model", None)
+        request_dict.pop("logit_bias", None)
         sampling_params = SamplingParams(**request_dict)
         request_id = random_uuid()
         results_generator = self.engine.generate(prompt, sampling_params, request_id)
