@@ -82,6 +82,8 @@ class VLLMPredictDeployment:
         request_dict = await request.json()
         prompt = request_dict.pop("prompt")
         stream = request_dict.pop("stream", False)
+        # model can´t be processed by ray
+        request_dict.pop("model", None)
         sampling_params = SamplingParams(**request_dict)
         request_id = random_uuid()
         results_generator = self.engine.generate(prompt, sampling_params, request_id)
