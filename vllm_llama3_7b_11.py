@@ -7,7 +7,8 @@ from starlette.responses import Response
 @serve.deployment()
 class VLLMPredictDeployment:
     async def __call__(self, request: Request) -> Response:
-        url = "http://vllm-server:8001" + request.url.path
+        # url = "http://vllm-server:8001" + request.url.path
+        url = "http://localhost:8001" + request.url.path
 
         async with httpx.AsyncClient() as client:
             if request.method == "GET":
