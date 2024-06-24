@@ -4,7 +4,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 
-@serve.deployment(ray_actor_options={"num_gpus": 1})
+@serve.deployment()
 class VLLMPredictDeployment:
     async def __call__(self, request: Request) -> Response:
         request_dict = await request.json()
