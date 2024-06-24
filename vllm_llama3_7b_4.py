@@ -25,39 +25,6 @@ from vllm.utils import random_uuid
 @serve.deployment(ray_actor_options={"num_gpus": 1})
 class VLLMPredictDeployment:
     def __init__(self, **kwargs):
-        """
-        Construct a VLLM deployment.
-
-        Refer to https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py
-        for the full list of arguments.
-
-        Args:
-            model: name or path of the huggingface model to use
-            download_dir: directory to download and load the weights,
-                default to the default cache dir of huggingface.
-            use_np_weights: save a numpy copy of model weights for
-                faster loading. This can increase the disk usage by up to 2x.
-            use_dummy_weights: use dummy values for model weights.
-            dtype: data type for model weights and activations.
-                The "auto" option will use FP16 precision
-                for FP32 and FP16 models, and BF16 precision.
-                for BF16 models.
-            seed: random seed.
-            worker_use_ray: use Ray for distributed serving, will be
-                automatically set when using more than 1 GPU
-            pipeline_parallel_size: number of pipeline stages.
-            tensor_parallel_size: number of tensor parallel replicas.
-            block_size: token block size.
-            swap_space: CPU swap space size (GiB) per GPU.
-            gpu_memory_utilization: the percentage of GPU memory to be used for
-                the model executor
-            max_num_batched_tokens: maximum number of batched tokens per iteration
-            max_num_seqs: maximum number of sequences per iteration.
-            disable_log_stats: disable logging statistics.
-            engine_use_ray: use Ray to start the LLM engine in a separate
-                process as the server process.
-            disable_log_requests: disable logging requests.
-        """
         args = AsyncEngineArgs(**kwargs)
         self.engine = AsyncLLMEngine.from_engine_args(args)
 
