@@ -8,11 +8,14 @@ https://github.com/ray-project/ray/blob\
 """
 
 import json
+import time
+import uuid
+from typing import AsyncGenerator
+
 from fastapi import BackgroundTasks
 from ray import serve
 from starlette.requests import Request
 from starlette.responses import StreamingResponse, Response
-from typing import AsyncGenerator
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.sampling_params import SamplingParams
@@ -80,6 +83,8 @@ class VLLMPredictDeployment:
         - other fields: the sampling parameters (See `SamplingParams` for details).
         """
         request_dict = await request.json()
+        if isinstance(request_dict, list):
+            request_dict = request_dict[0]
         prompt = request_dict.pop("prompt")
         stream = request_dict.pop("stream", False)
         # model can´t be processed by ray
@@ -109,8 +114,33 @@ class VLLMPredictDeployment:
 
         assert final_output is not None
         prompt = final_output.prompt
-        text_outputs = [prompt + output.text for output in final_output.outputs]
-        ret = {"text": text_outputs}
+        # text_outputs = [prompt + output.text for output in final_output.outputs]
+
+        ret = {
+            "id": uuid.uuid4(),
+            "object": "chat.completion",
+            "created": time.time(),
+            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "system_fingerprint": "fp_" + str(uuid.uuid4()),
+            "choices": [
+                {
+                    "message": {
+                        "role": "system",
+                        "content": output,
+                    },
+                    "index": i,
+                    "logprobs": None,
+                    "finish_reason": "stop",
+                }
+                for i, output in enumerate(final_output.outputs)
+            ],
+            "usage": {
+                "prompt_tokens": len(prompt.split()),
+                "completion_tokens": sum([len(output) for output in final_output.outputs]) * 2,
+                "total_tokens": len(prompt.split()) + sum([len(output) for output in final_output.outputs]) * 2,
+            },
+        }
+
         return Response(content=json.dumps(ret))
 
 
