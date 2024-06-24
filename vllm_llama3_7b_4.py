@@ -126,7 +126,7 @@ class VLLMPredictDeployment:
                 {
                     "message": {
                         "role": "system",
-                        "content": output,
+                        "content": output.text,
                     },
                     "index": i,
                     "logprobs": None,
@@ -136,8 +136,8 @@ class VLLMPredictDeployment:
             ],
             "usage": {
                 "prompt_tokens": len(prompt.split()),
-                "completion_tokens": sum([len(output) for output in final_output.outputs]) * 2,
-                "total_tokens": len(prompt.split()) + sum([len(output) for output in final_output.outputs]) * 2,
+                "completion_tokens": sum([len(output.text) for output in final_output.outputs]) * 2,
+                "total_tokens": len(prompt.split()) + sum([len(output.text) for output in final_output.outputs]) * 2,
             },
         }
 
