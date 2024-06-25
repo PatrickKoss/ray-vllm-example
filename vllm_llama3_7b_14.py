@@ -17,16 +17,8 @@ class VLLMPredictDeployment:
                 body = await request.json()
                 stream = body.pop("stream", False)
                 if stream:
-                    response = await client.stream("POST", url, json=body)
-
-                    async def response_stream():
-                        async for chunk in response.aiter_bytes():
-                            yield chunk
-
-                    headers = dict(response.headers)
-                    headers.pop('Content-Length', None)
-
-                    return StreamingResponse(response_stream(), media_type=headers.get('Content-Type'), headers=headers)
+                    async with client.stream("POST", url, json=body) as response:
+                        return await self.handle_streaming_response(response)
                 else:
                     response = await client.post(url, json=body)
             else:
@@ -35,6 +27,16 @@ class VLLMPredictDeployment:
 
         return Response(content=response.content, status_code=response.status_code, headers=response.headers,
                         media_type=response.headers.get('Content-Type'))
+
+    async def handle_streaming_response(self, response):
+        async def response_stream():
+            async for chunk in response.aiter_bytes():
+                yield chunk
+
+        headers = dict(response.headers)
+        headers.pop('Content-Length', None)
+
+        return StreamingResponse(response_stream(), media_type=headers.get('Content-Type'), headers=headers)
 
 
 # Deployment definition for Ray Serve
